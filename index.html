@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Best of the Region Directory</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind to use the Inter font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+    </style>
+</head>
+<body class="min-h-screen antialiased">
+
+    <!-- Header Section -->
+    <header class="bg-indigo-700 shadow-xl">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <h1 class="text-4xl font-extrabold tracking-tight text-white">
+                The Best of Our Region Directory
+            </h1>
+            <p class="mt-2 text-xl text-indigo-200">
+                Discover the top local businesses, organized by category.
+            </p>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+        <div id="directory-container" class="space-y-12">
+            <!-- Categorized Business Sections will be injected here by JavaScript -->
+        </div>
+
+        <div id="error-message" class="hidden mt-8 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg max-w-lg mx-auto" role="alert">
+            <p class="font-bold">Error Loading Directory</p>
+            <p id="error-text">There was an issue loading the directory data.</p>
+        </div>
+    </main>
+
+    <!-- JavaScript for Data and Rendering -->
+    <script>
+        // Define the 5 mandatory categories in order
+        const CATEGORIES = [
+            "health & body",
+            "home",
+            "auto",
+            "creative",
+            "food"
+        ];
+
+        // Mock data for the local businesses, mapped to the 5 requested categories
+        const businesses = [
+            { 
+                name: "The Artisan Bakery", 
+                url: "https://www.theartisanbakery.com", 
+                logo: "https://placehold.co/128x128/9D5353/F0F0F0?text=FOOD",
+                category: "food"
+            },
+            { 
+                name: "Apex Digital Design", 
+                url: "https://www.apexdesign.com", 
+                logo: "https://placehold.co/128x128/0077B6/FFFFFF?text=DESIGN",
+                category: "creative"
+            },
+            { 
+                name: "Green Thumb Landscaping", 
+                url: "https://www.greenthumb.net", 
+                logo: "https://placehold.co/128x128/4CAF50/FFFFFF?text=GARDEN",
+                category: "home"
+            },
+            { 
+                name: "Zen Yoga Studio", 
+                url: "https://www.zenyogaregion.co", 
+                logo: "https://placehold.co/128x128/F48FB1/FFFFFF?text=YOGA",
+                category: "health & body"
+            },
+            { 
+                name: "Coastal Interior Design", 
+                url: "https://www.coastalinteriors.com", 
+                logo: "https://placehold.co/128x128/673AB7/FFFFFF?text=INTERIOR",
+                category: "home"
+            },
+            { 
+                name: "Elite Fitness Center", 
+                url: "https://www.elitefit.com", 
+                logo: "https://placehold.co/128x128/FF9800/FFFFFF?text=FITNESS",
+                category: "health & body"
+            },
+            { 
+                name: "Riverside Auto Repair", 
+                url: "https://www.riversideauto.net", 
+                logo: "https://placehold.co/128x128/607D8B/FFFFFF?text=AUTO",
+                category: "auto"
+            },
+            { 
+                name: "Creative Marketing Agency", 
+                url: "https://www.creative-mkt.com", 
+                logo: "https://placehold.co/128x128/3F51B5/FFFFFF?text=MKTG",
+                category: "creative"
+            }
+        ];
+
+        const directoryContainer = document.getElementById('directory-container');
+        const errorMessage = document.getElementById('error-message');
+
+        /**
+         * Creates a clickable business card element.
+         * @param {Object} business - The business object.
+         * @returns {HTMLElement} The card element.
+         */
+        function createBusinessCard(business) {
+            const isPlaceholder = business.isPlaceholder;
+            
+            const cardLink = document.createElement('a');
+            cardLink.href = isPlaceholder ? '#' : business.url;
+            cardLink.target = isPlaceholder ? '_self' : "_blank"; 
+            cardLink.rel = isPlaceholder ? '' : "noopener noreferrer"; 
+            cardLink.title = isPlaceholder ? `Advertise your business in the ${business.category} section` : `Visit ${business.name}'s website`;
+
+            // Dynamic Tailwind classes based on whether it's a real business or a placeholder
+            cardLink.className = `
+                flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300 
+                ${isPlaceholder 
+                    ? 'bg-gray-100 border-2 border-dashed border-gray-400 text-gray-600 hover:border-indigo-500 hover:text-indigo-700 cursor-pointer shadow-none hover:shadow-lg' 
+                    : 'bg-white shadow-lg hover:shadow-2xl transform hover:scale-[1.03] focus:outline-none focus:ring-4 focus:ring-indigo-500/50'
+                }
+            `;
+
+            // Logo/Image Area
+            const logoContainer = document.createElement('div');
+            logoContainer.className = "w-24 h-24 flex items-center justify-center rounded-full transition-colors duration-300";
+
+            if (isPlaceholder) {
+                // Use an SVG icon for the placeholder slot
+                logoContainer.innerHTML = `
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                `;
+            } else {
+                const logoImg = document.createElement('img');
+                logoImg.src = business.logo;
+                logoImg.alt = `${business.name} Logo`;
+                logoImg.className = "w-full h-full object-contain rounded-full border-4 border-gray-100 hover:border-indigo-500 transition-colors duration-300";
+                
+                // Fallback for image loading error
+                logoImg.onerror = function() {
+                    this.onerror = null; 
+                    this.src = "https://placehold.co/128x128/A78BFA/FFFFFF?text=Logo"; // Use a slightly different placeholder for errors
+                    this.alt = "Placeholder Logo";
+                    this.className = "w-full h-full object-contain rounded-full border-4 border-gray-100 bg-gray-300 flex items-center justify-center text-xs text-white"; 
+                };
+                logoContainer.appendChild(logoImg);
+            }
+            
+            // Business Name or Placeholder Text
+            const nameText = document.createElement('p');
+            nameText.textContent = business.name;
+            nameText.className = `mt-4 text-center text-lg font-semibold ${isPlaceholder ? 'text-gray-600' : 'text-gray-800'} truncate w-full px-2`;
+
+            // Category Tag (Hidden for placeholder, optional for real business)
+            if (!isPlaceholder && business.category) {
+                const categoryTag = document.createElement('span');
+                categoryTag.textContent = business.category.toUpperCase();
+                categoryTag.className = "mt-1 text-xs font-medium text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full";
+                cardLink.appendChild(categoryTag);
+            }
+
+
+            cardLink.appendChild(logoContainer);
+            cardLink.appendChild(nameText);
+            // The category tag is appended inside the 'if' block above, so this line is removed to fix the ReferenceError.
+            
+            return cardLink;
+        }
+
+        /**
+         * Renders all business cards, grouped by category.
+         */
+        function renderBusinesses() {
+            if (!directoryContainer) {
+                console.error("Directory container element not found.");
+                errorMessage.classList.remove('hidden');
+                document.getElementById('error-text').textContent = "The main display area is missing.";
+                return;
+            }
+            directoryContainer.innerHTML = ''; // Clear previous content
+
+            // 1. Group businesses by category
+            const groupedBusinesses = businesses.reduce((acc, business) => {
+                const category = business.category.toLowerCase().trim();
+                if (!acc[category]) {
+                    acc[category] = [];
+                }
+                acc[category].push(business);
+                return acc;
+            }, {});
+
+            // 2. Iterate through the defined categories and render
+            CATEGORIES.forEach(categoryKey => {
+                const categoryTitle = categoryKey.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' & ');
+                const businessesInCategory = groupedBusinesses[categoryKey] || [];
+                
+                // Create the section container
+                const section = document.createElement('section');
+                section.className = "bg-white p-6 sm:p-8 rounded-2xl shadow-xl";
+
+                // Category Title
+                const title = document.createElement('h2');
+                title.textContent = categoryTitle;
+                title.className = "text-2xl sm:text-3xl font-bold mb-6 text-indigo-800 border-b-2 border-indigo-100 pb-2";
+
+                // Grid Container for businesses and placeholder
+                const grid = document.createElement('div');
+                // The grid layout is defined here, making it responsive
+                grid.className = "grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4";
+                
+                // Add all existing businesses
+                businessesInCategory.forEach(business => {
+                    grid.appendChild(createBusinessCard(business));
+                });
+
+                // Add the placeholder slot
+                const placeholder = { 
+                    name: "Your business here", 
+                    url: "#contact-for-listing", 
+                    isPlaceholder: true,
+                    category: categoryTitle
+                };
+                grid.appendChild(createBusinessCard(placeholder));
+
+
+                section.appendChild(title);
+                section.appendChild(grid);
+                directoryContainer.appendChild(section);
+            });
+        }
+
+        // Initialize the directory when the script runs
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                renderBusinesses();
+            } catch (e) {
+                console.error("Rendering failed:", e);
+                errorMessage.classList.remove('hidden');
+                document.getElementById('error-text').textContent = `An unexpected error occurred: ${e.message}`;
+            }
+        });
+
+    </script>
+</body>
+</html>
